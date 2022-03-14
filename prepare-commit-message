@@ -1,12 +1,13 @@
-#!/usr/bin/env bash
-CLEAR='\033[0m'
-GREEN='\033[0;32m'
-ID='[a-zA-Z_0-9]+-[0-9]+'
-if ! grep -E "^(Merge|$ID) .+" $1 > /dev/null; then
-    id=$( git rev-parse --abbrev-ref HEAD | grep -o -E "$ID" | tr '[:lower:]' '[:upper:]')
-    if [ -z "$id" ]; then
-        exit 0
-    fi
-    echo -e Updating commit message to ${GREEN}\""[$id]" `head -n 1 $1`\"${CLEAR}
-    echo -n "[$id] " | cat - $1 > /tmp/out && mv /tmp/out $1
+#!/bin/bash
+
+# get current branch
+branchName=`git rev-parse --abbrev-ref HEAD`
+
+# search jira issue id in pattern
+jiraId=$(echo $branchName | sed -nr 's,[a-z]*\/*([A-Z]+-[0-9]+)-.+,\1,p')
+
+# only prepare commit message if pattern matched and jiraId was found
+if [[ ! -z $jiraId ]]; then
+ # $1 is the name of the file containing the commit message
+ sed -i.bak -e "1s/^/\n\n[$jiraId]: /" $1
 fi
